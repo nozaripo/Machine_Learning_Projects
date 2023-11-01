@@ -1,0 +1,374 @@
+---
+title: "Machine Learning from Titanic Disaster"
+author: "Pouria"
+date: "3/28/2022"
+output:
+  pdf_document:
+    toc: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+
+
+
+# Objective
+
+This dataset contain the data related to the passengers of the Titanic. The goal is to see if we are able to build a model that can predict whether or not a passenger would survive. The `Survived` column of this dataset reflects if they really survived or not (`1`: survived, and `0`: didn’t survive).
+
+1. Load the attached csv file into your Markdown accounting for the missing values.
+
+2. Preprocess the data.
+
+- Check for the missing values for each variable.
+
+- Use `missmap()` to visualize the missing values.
+	
+- Reasonably ignore variables that probably do not affect the predictions.
+	
+- Impute the missing values in the numeric (continuous) variables. Only `Age` here.
+	
+- Remove any of the rows with `NA` in their categorical variables (any categorical variable that is left in your data after leaving the unnecessary ones out).
+
+
+3. Split the data up into the training and test set. (`set.seed = 1`).
+
+- Sample 100 rows from the data and use as your test set. Use the rest as your training set.
+
+
+4. Fit a logistic regression model onto the training set 
+
+- Fit and summarize the model to predict `Survived` as a function of all other remaining variables.
+
+- Use `anova()` to see the effect of each variable on the residual deviance.
+
+- Obtain pseudo-R2 of the model, e.g., McFadden R2.
+
+
+5. Evaluate your model on the test set.
+
+- Calculate the misclassification error on your test set with `threshold = 0.5`
+
+- the accuracy result your obtained depends on the test set – so, now re-estimate the accuracy with a 10-fold CV
+
+- Compute the confusion matrix for the model with the test set.
+
+- Use library `ROCR` to plot ROC curve and also obtain the AUC of your model.
+	
+
+6. Redo the last two steps with only `Pclass` and `Age`.
+
+-	At last, plot the ROC curve from the two models on the same figure. What do you conclude?
+
+
+
+# Import Required Libraries and Tools
+```{r, Libraries, include=T}
+library(caret)
+library(Amelia)
+library(dplyr)
+library(boot)
+library(ROCR)
+library(pscl)
+
+```
+
+
+# 1. Import/read the data.
+
+Load the attached csv file into your Markdown accounting for the missing values.
+
+## Import the csv file
+
+Let's import the training data here:
+
+```{r}
+training.data.raw <- read.csv('Titanic.csv', na.strings=c(""))
+# training.data.raw <- read.csv('Titanic.csv')
+
+head(training.data.raw)
+```
+
+# 2. Preprocess the data.
+
+## Missing values
+
+- Check for the missing values for each variable.
+
+Now we need to check for missing values and look how many unique values there are for each variable using the `sapply()` function to apply `is.na()` on to all variables in the data.
+
+```{r, include=T}
+# sapply(data, function(x){})
+```
+
+
+
+```{r}
+sapply(training.data.raw,function(x) sum(is.na(x)))
+
+sapply(training.data.raw, function(x) length(unique(x)))
+```
+
+## Leave out irrelevant variables
+
+- Ignore/leave out the variables `PassengerID`, `Cabin`, `Ticket`, and `Name`.
+	
+
+```{r}
+names(training.data.raw)
+# data <- subset(training.data.raw,select=c(2,3,5,6,7,8,10,12))
+data <- training.data.raw %>%
+  select(-c("PassengerId", "Cabin", "Ticket", "Name"))
+
+head(data)
+```
+
+
+
+
+## Visualize missing values
+
+- Use `missmap()` to visualize the missing values.
+	
+
+
+We can also visualize the missing values using the function `missmap()`.
+
+```{r}
+missmap(training.data.raw, main = "Missing values vs observed") 
+```
+
+
+## Impute the missing values
+
+- Only keep those rows that are not `NA` in `Embarked`
+
+- Then, impute the missing values in `Age` with mean value.
+
+ 
+
+```{r}
+
+data <- data[!is.na(data$Embarked),]
+
+data$Age[is.na(data$Age)] <- mean(data$Age,na.rm=T)
+
+head(data)
+```
+
+
+
+# 3. Split the data
+
+Split the data up into the training and test set. (`set.seed = 1`).
+
+## Split the data
+
+- Sample 100 rows from the data and use as your test set. Use the rest as your training set.
+
+
+```{r}
+set.seed(1)
+test.ID <- sample(dim(data)[1], 100)
+train <- data[-test.ID,]
+test <- data[test.ID,]
+```
+
+# 4. Logistic Regression
+
+Fit a logistic regression model onto the training set 
+
+
+## Fit and summarize
+
+- Fit and summarize the model to predict `Survived` as a function of all other remaining variables.
+
+
+
+```{r}
+model <- glm(Survived ~ ., family=binomial(link="logit"), data = train)
+summary(model)
+```
+
+## Use `anova()`
+
+- Use `anova()` to see the effect of each variable on the residual deviance.
+
+
+```{r}
+anova(model, test="Chisq")
+```
+
+## Pseudo-R2
+
+- Obtain pseudo-R2 of the model, e.g., McFadden R2.
+
+
+```{r}
+pR2(model)
+```
+# 5. Evaluate your model on the test set.
+
+## Misclassification error
+
+- Use your model on the test set to make predictions of `Survived`.
+
+- Calculate the misclassification error on your test set with threshold = `0.5`.
+
+
+
+```{r}
+pred.results <- predict(model, newdata=subset(test, select=-1), type = "response")
+
+pred.results <- ifelse(pred.results > .5, 1, 0)
+
+
+misClassificationError <- mean(pred.results!= test$Survived)
+print(paste("Accuracy = ", 1-misClassificationError))
+```
+
+
+
+## Confusion Matrix
+
+- Compute the confusion matrix for the model with the test set.
+
+You may use either `table()` or `confusionMatrix()` to obtain the confusion matrix. 
+
+
+```{r}
+confusionMatrix(factor(test$Survived), factor(pred.results))
+# table(test$Survived, pred.results)
+```
+
+
+## Plot ROC
+
+- Use library **ROCR** to plot ROC curve.
+
+Use `prediction()` and then pass its output to `performance()` to obtain the true positive rate (`"tpr"`) and false positive rate (`"fpr"`) values for different thresholds. Notice that you will not have to worry about setting thresholds. `performance()` will automatically try different thresholds and accordingly return the rate values in two arrays that are accessible by `@` (instead of `$`).
+
+```{r}
+pred <- predict(model, newdata=subset(test, select=-1), type = "response")
+pr <- prediction(pred, test$Survived)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+```
+
+
+## Obtain AUC
+
+- Your measure in `performance()` will be `"auc"` this time.
+
+```{r}
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+
+```
+
+
+## Calculate the accuracy using CV error
+
+- the accuracy result your obtained depends on the test set – so, now re-estimate the accuracy with a 10-fold CV
+
+```{r}
+model.full <- glm(Survived ~ ., family=binomial(link="logit"), data = data)
+cv.error <- cv.glm(data, model.full, K=10)$delta[1]
+accuracy <- 1 - cv.error
+accuracy
+```
+
+
+
+# 6. Fit a new model
+
+- Redo the last two steps with only `Pclass` and `Age`.
+
+## Implement a new fit with `Pclass` and `Age`
+Do the fit again with only `Pclass` and `Age`; 
+
+```{r}
+model2 <- glm(Survived ~ Pclass + Age, family=binomial(link="logit"), data = train)
+summary(model2)
+```
+
+
+## Anova
+
+```{r}
+anova(model, model2)
+```
+
+
+## Estimate the accuracy with 10-fold CV.
+
+```{r}
+model2.cv <- glm(Survived ~ Pclass + Age, family=binomial(link="logit"), data = data)
+cv.error2 <- cv.glm(data, model2.cv, K=10)$delta[1]
+accuracy <- 1 - cv.error2
+accuracy
+```
+
+
+## Misclassification on test set
+
+- Make predictions on the test set and calculate misclassification
+
+```{r}
+pred.results2 <- predict(model2, newdata=subset(test, select=-1))
+pred.results2 <- ifelse(pred.results > .5, 1, 0)
+
+misClassificationError <- mean(pred.results!= test$Survived)
+print(paste("Accuracy = ", 1-misClassificationError))
+
+```
+
+
+
+## Confusion Matrix
+
+```{r}
+confusionMatrix(factor(test$Survived), factor(pred.results2))
+
+```
+
+
+## ROC Curve
+Plot ROC for this new model on top of the ROC curve for the full model  - what do you conclude?
+
+```{r}
+pred2 <- predict(model2, newdata=subset(test, select=-1), type = "response")
+pr2 <- prediction(pred2, test$Survived)
+prf2 <- performance(pr2, measure = "tpr", x.measure = "fpr")
+plot(prf2)
+auc2 <- performance(pr2, measure = "auc")
+auc2 <- auc2@y.values[[1]]
+auc2
+
+
+```
+
+
+## Both ROC Curves
+
+```{r}
+df1 <- data.frame(prf@y.values, prf@x.values) %>%
+  mutate(Model = "Survived ~ .") %>%
+  `colnames<-`(c("TP", "FP", "Model"))
+
+df2 <- data.frame(prf2@y.values, prf2@x.values) %>%
+  mutate("Model" = "Survived ~ Pclass + Age") %>%
+  `colnames<-`(c("TP", "FP", "Model"))
+
+df <- rbind(df1, df2)
+```
+
+```{r}
+ggplot(df) +
+  geom_line(aes(x = FP, y = TP, col = Model), size = 1.5) +
+  scale_color_manual(values = c("red", "black")) 
+```
+
