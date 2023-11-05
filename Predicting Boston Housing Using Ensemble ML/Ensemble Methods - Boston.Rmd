@@ -3,7 +3,7 @@ title: "Tree-Based & Ensemble Methods"
 author: "Pouria"
 date: "4/25/2022"
 output: 
-  pdf_document:
+  github_document:
     toc: TRUE
 ---
 
@@ -22,7 +22,7 @@ You may access `Boston` within the library `MASS`.
 
 
 
-## Required Libraries
+# Required Libraries
 ```{r, warning=F, message=F}
 # library(ISLR)
 library(MASS)
@@ -101,7 +101,7 @@ mean((yhat - Boston.test$medv)^2)
 ```
 
 
-# Cross-Validation for the Tree - Pruning
+## Cross-Validation for the Tree - Pruning
 
 To select the best model we will perform cross-validation on the tree and print the output.
 
@@ -179,7 +179,7 @@ data.frame(size = df.cv$size,
 ```
 
 
-## c) Cross-Validation - Pruning
+## Cross-Validation - Pruning
 
 4. Prune the tree with the best parameter selected above, and print a summary of the output.
 

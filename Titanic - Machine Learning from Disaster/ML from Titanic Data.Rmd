@@ -3,8 +3,8 @@ title: "Machine Learning from Titanic Disaster"
 author: "Pouria"
 date: "3/28/2022"
 output:
-  pdf_document:
-    toc: TRUE
+  github_document:
+    toc: False
 ---
 
 ```{r setup, include=FALSE}
@@ -18,49 +18,6 @@ knitr::opts_chunk$set(echo = T)
 
 This dataset contain the data related to the passengers of the Titanic. The goal is to see if we are able to build a model that can predict whether or not a passenger would survive. The `Survived` column of this dataset reflects if they really survived or not (`1`: survived, and `0`: didn’t survive).
 
-1. Load the attached csv file into your Markdown accounting for the missing values.
-
-2. Preprocess the data.
-
-- Check for the missing values for each variable.
-
-- Use `missmap()` to visualize the missing values.
-	
-- Reasonably ignore variables that probably do not affect the predictions.
-	
-- Impute the missing values in the numeric (continuous) variables. Only `Age` here.
-	
-- Remove any of the rows with `NA` in their categorical variables (any categorical variable that is left in your data after leaving the unnecessary ones out).
-
-
-3. Split the data up into the training and test set. (`set.seed = 1`).
-
-- Sample 100 rows from the data and use as your test set. Use the rest as your training set.
-
-
-4. Fit a logistic regression model onto the training set 
-
-- Fit and summarize the model to predict `Survived` as a function of all other remaining variables.
-
-- Use `anova()` to see the effect of each variable on the residual deviance.
-
-- Obtain pseudo-R2 of the model, e.g., McFadden R2.
-
-
-5. Evaluate your model on the test set.
-
-- Calculate the misclassification error on your test set with `threshold = 0.5`
-
-- the accuracy result your obtained depends on the test set – so, now re-estimate the accuracy with a 10-fold CV
-
-- Compute the confusion matrix for the model with the test set.
-
-- Use library `ROCR` to plot ROC curve and also obtain the AUC of your model.
-	
-
-6. Redo the last two steps with only `Pclass` and `Age`.
-
--	At last, plot the ROC curve from the two models on the same figure. What do you conclude?
 
 
 
@@ -368,7 +325,7 @@ df <- rbind(df1, df2)
 
 ```{r}
 ggplot(df) +
-  geom_line(aes(x = FP, y = TP, col = Model), size = 1.5) +
+  geom_line(aes(x = FP, y = TP, col = Model), linewidth = 1.5) +
   scale_color_manual(values = c("red", "black")) 
 ```
 

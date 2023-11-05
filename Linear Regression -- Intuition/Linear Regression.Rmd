@@ -3,8 +3,8 @@ title: "Linear Regression - Intuition"
 author: "Pouria"
 date: "1/24/2022"
 output:
-  pdf_document:
-    toc: True
+  github_document:
+    toc: FALSE
 ---
 
 ```{r setup, include=FALSE}
@@ -150,7 +150,7 @@ Visualize(Coeff.df)
 
 ## Part 1.b
 
-Set up the parameters according to 1.b now:
+Set up the parameters according to 1.b. Now doing this is associated with increasing the number of observations. Let's see the results on a graph.
 ```{r Parameters 1(b)}
 N.Exp = 10
 N.Obs = 20
@@ -172,6 +172,8 @@ Now let's visualize for 20 observations from 10 experiments
 ```{r}
 Visualize(Coeff.df)
 ```
+
+As can be seen in the two last figures, the linear fit (red lines) estimated from data with 20 observations lies within a less variable range than the linear fit from 5 observations does. In other words, the confidence interval in 20 observations is thinner, and the estimate of the fit is generally closer to the true given fit.
 
 ## Part 1.c
 
@@ -221,17 +223,18 @@ You may ask why. Well, intuitively, more observations will add more reliability 
 # Part 2: Iterative Search
 Now we will try to estimate coefficients of a linear regression model via systematic simulations
 
-a. We now use the following model 
+a. We will now use the following model 
 
-$$y = 7 + 0.05 *X + \sigma,$$ 
+$$y = 7 + 0.05 *X + \epsilon,$$ 
 
-with $\sigma \sim N(0, 1))$
+with $\epsilon \sim \mathcal{N}(0, 1)$
 
-b. Plot the regression line with 100 observations
+b. We will then plot the regression line with 100 observations
 
-c. Now using 2 for-loops over the parameters with about 100 steps for each parameter, generate a figure like figure 3.2A in the book (use similar parameter ranges).
-d. Find the minimum of RSS curve using `min()`? Plot the minimum on the figure. How does this compare with the parameters given by the `lm()`? 
-e. Now repeat with about 5 steps for each parameter. Generate the figure again. How does this compare with the parameters given by the `lm()`?  What do you conclude?
+c. Now using 2 for-loops over the parameters with about 100 steps for each parameter, we will generate a contour plot of the cost as a function the intercept and slope parameters.
+
+d. We will then Find the minimum of RSS curve using `min()`? Plot the minimum on the figure. How does this compare with the parameters given by the `lm()`.
+e. Next, we will repeat with about 5 steps for each parameter, and Generate the figure again. How does this compare with the parameters given by the `lm()`?  What do you conclude?
 f. *Bonus*: generate 3D plots like figure 3.2B
 
 
