@@ -3,7 +3,7 @@ title: 'Linear Mixed Effect Model for Orthodontic Growth Data'
 author: "Pouria"
 date: "28 February, 2022"
 output:
-  pdf_document:
+  github_document:
     toc: true
 ---
 
