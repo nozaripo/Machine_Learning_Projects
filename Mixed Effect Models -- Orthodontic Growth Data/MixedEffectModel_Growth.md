@@ -3,60 +3,7 @@ Linear Mixed Effect Model for Orthodontic Growth Data
 Pouria
 28 February, 2022
 
-- [Objective](#objective)
-- [Required Libraries](#required-libraries)
-- [Into to “Orthodontic growth”
-  dataset](#into-to-orthodontic-growth-dataset)
-- [Questions](#questions)
-  - [Specific questions](#specific-questions)
-- [Preliminary Visualization](#preliminary-visualization)
-- [Data Modeling Part 1: Simple Linear Regression to fit
-  all](#data-modeling-part-1-simple-linear-regression-to-fit-all)
-  - [Does one model fit all?](#does-one-model-fit-all)
-  - [Residuals for each subject](#residuals-for-each-subject)
-- [Data Modeling Part 2: Simple Linear Regression Per
-  Subject](#data-modeling-part-2-simple-linear-regression-per-subject)
-  - [Fit the model:](#fit-the-model)
-  - [Plot 95% confidence intervals](#plot-95-confidence-intervals)
-  - [Plot fits for each subject](#plot-fits-for-each-subject)
-  - [Comments](#comments)
-  - [What if we use `Subject` as an actual
-    effect?](#what-if-we-use-subject-as-an-actual-effect)
-    - [e.g. use dummy variables for `Subject`
-      effect](#eg-use-dummy-variables-for-subject-effect)
-- [Data Modeling Part 3: Fit a Linear Mixed Effect Model
-  (LME)](#data-modeling-part-3-fit-a-linear-mixed-effect-model-lme)
-  - [Fit a single-level mixed effect
-    model](#fit-a-single-level-mixed-effect-model)
-  - [Confidence interval of the fit](#confidence-interval-of-the-fit)
-  - [Mixed Effect with diagonal
-    covariance](#mixed-effect-with-diagonal-covariance)
-  - [Compare general and diagonal
-    models](#compare-general-and-diagonal-models)
-  - [Mixed Effect with only slope as random
-    effect](#mixed-effect-with-only-slope-as-random-effect)
-  - [Compare general and mixed-effects-only-slope
-    models](#compare-general-and-mixed-effects-only-slope-models)
-  - [Compare the coefficients between the mixed-effect and list
-    models](#compare-the-coefficients-between-the-mixed-effect-and-list-models)
-  - [Plot mixed effect fits for each
-    subject](#plot-mixed-effect-fits-for-each-subject)
-  - [Consider the gender as an effect
-    (Summarize)](#consider-the-gender-as-an-effect-summarize)
-  - [Consider the gender as an effect (Check
-    Intervals)](#consider-the-gender-as-an-effect-check-intervals)
-  - [Residual Plot vs. fitted value](#residual-plot-vs-fitted-value)
-  - [Residuals for each subject
-    (boxplot)](#residuals-for-each-subject-boxplot)
-  - [Compare mixed effect model and fixed effect
-    model](#compare-mixed-effect-model-and-fixed-effect-model)
-  - [Check the fixed-effect and random-effect
-    coefficients](#check-the-fixed-effect-and-random-effect-coefficients)
-  - [Plot the fixed and mixed effects fits on the same graph per
-    subject](#plot-the-fixed-and-mixed-effects-fits-on-the-same-graph-per-subject)
-- [Conclusion](#conclusion)
-
-# Objective
+## Objective
 
 In this project, the objective is to infer an ML model that can fit to
 the longitudinal Orthodontic Growth dataset. The independent variables
@@ -64,7 +11,7 @@ of interest in this set are `age`, `gender`, and `sex`. In this project,
 we seek to find the most important factors among these and also see if
 we need a model beyond linear regression to explain the data.
 
-# Required Libraries
+## Required Libraries
 
 ``` r
 library(nlme)
@@ -74,7 +21,7 @@ library(tidyr)
 library(magrittr)
 ```
 
-# Into to “Orthodontic growth” dataset
+## Into to “Orthodontic growth” dataset
 
 **Orthodontic growth data, Example from Pinheiro and Bates (2000)**
 
@@ -98,62 +45,18 @@ head(Orthodont)
     ## 5     21.5   8     M02 Male
     ## 6     22.5  10     M02 Male
 
-# Questions
+## Questions
 
-- Is there an age effect on growth?
+- Is there an `age` effect on growth?
 
-- Is there a gender difference?
+- Is there a `gender` difference?
 
-- Is growth different in both sexes (Is there an interaction)?
+- Is `growth` different in sexes (Is there an interaction)?
 
-- Is an ordinary linear regression model adequate?
+- Is an ordinary linear regression model adequate? If not, what is the
+  best way we can build an interpretable model that explains this data?
 
-## Specific questions
-
-1.  Take a look at the data in group and per subject. (`distance`
-    vs. `age`)
-
-2.  How would a one-fits-all model do? (only `age` effect present)
-
-- Plot the residuals vs. fitted values in a scatterplot
-
-- Plot the residuals per subject in a boxplot
-
-3.  Use independent linear models per subject;
-
-- Summarize
-
-- Plot the coefficients intervals
-
-- Plot the fits per subject
-
-4.  Discuss considering `Subject` effect in the model.
-
-5.  Fit a mixed effect model to the data for `age` as the fixed effect
-    and `Subject` as the random
-
-- Use general, diagonal and only-slope covariance matrix structures,
-  show the effects coefficients intervals and decide which one to pick
-  using anova.
-
-- Plot the mixed-effect model coefficients against those from the
-  fixed-effect
-
-- Plot mixed-effect fits for each subject
-
-6.  Consider `Sex` and its interaction with `age` as other effecs. Is it
-    a signficant variable in predicting the `distance`?
-
-- Plot residuals vs. fitted-values for mixed-effect and fixed-effect
-  models.
-
-- Plot residuals per subject (in form of box plots)
-
-- Compare mixed effect model and fixed effect model using anova
-
-- Check out the coefficients in fixed-effect and random-effects
-
-# Preliminary Visualization
+## Preliminary Visualization
 
 Let’s plot the data per subject
 
@@ -182,9 +85,9 @@ ggplot(Orthodont) +
 
 ![](MixedEffectModel_Growth_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
-# Data Modeling Part 1: Simple Linear Regression to fit all
+## Data Modeling Part 1: Simple Linear Regression to fit all
 
-### Does one model fit all?
+#### Does one model fit all?
 
 Let’s see. In order to do this, the assumption is that there is no
 significant effect of `Subject`. Thus, we will have:
@@ -242,7 +145,7 @@ cannot really tell much from this plot. Importantly, if the effect of
 `Subject` is non-existent, then the residuals across different subjects
 should not differ. Let’s see if that is the case:
 
-## Residuals for each subject
+### Residuals for each subject
 
 ``` r
 ggplot(lm.fit_all) +
@@ -261,9 +164,9 @@ in our modeling process. But how?
 Well, one way to do this is fit an independent model per subject. We
 will do that in the following:
 
-# Data Modeling Part 2: Simple Linear Regression Per Subject
+## Data Modeling Part 2: Simple Linear Regression Per Subject
 
-## Fit the model:
+### Fit the model:
 
 Use `lmList(.)`
 
@@ -341,7 +244,7 @@ summary(lm.fit_perSubj)
     ## 
     ## Residual standard error: 1.31004 on 54 degrees of freedom
 
-## Plot 95% confidence intervals
+### Plot 95% confidence intervals
 
 intercept and slope for each subject
 
@@ -352,7 +255,7 @@ plot(coef.95.perSubj)
 
 ![](MixedEffectModel_Growth_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
-## Plot fits for each subject
+### Plot fits for each subject
 
 ``` r
 ggplot(Orthodont, aes(x = age, y = distance)) + 
@@ -366,7 +269,7 @@ ggplot(Orthodont, aes(x = age, y = distance)) +
 
 ![](MixedEffectModel_Growth_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-## Comments
+### Comments
 
 - Residuals corresponding to the same subject tend to have the same
   sign.
@@ -376,14 +279,14 @@ ggplot(Orthodont, aes(x = age, y = distance)) +
 - Need to incorporate a “subject effect” in the model to account for
   between-subject variability.
 
-## What if we use `Subject` as an actual effect?
+### What if we use `Subject` as an actual effect?
 
 - Inference about subject effect will not be applicable to the whole
   population
 
 - You would still need M-1 dummy variables
 
-### e.g. use dummy variables for `Subject` effect
+#### e.g. use dummy variables for `Subject` effect
 
 ``` r
 lm.fit_SubjVariable <- lm(distance ~ I(age-11)*Subject, data = Orthodont)
@@ -471,7 +374,7 @@ Scientists:
 
 **Linear Mixed Effect Model**
 
-# Data Modeling Part 3: Fit a Linear Mixed Effect Model (LME)
+## Data Modeling Part 3: Fit a Linear Mixed Effect Model (LME)
 
 $$y_j^{(i)} = \quad \\
 \beta_0 + \beta_1 * age_j^{(i)} + \qquad \\
@@ -501,7 +404,7 @@ instead of having `M-1` levels of parameters to represent `M` subjects,
 has at most 3 parameters; the diagonal and off-diagonal noise/variance
 values in the covariance matrix.
 
-## Fit a single-level mixed effect model
+### Fit a single-level mixed effect model
 
 Both intercept and slope
 
@@ -539,7 +442,7 @@ summary(lm.fit_mixed_all)
     ## Number of Observations: 108
     ## Number of Groups: 27
 
-## Confidence interval of the fit
+### Confidence interval of the fit
 
 ``` r
 intervals(lm.fit_mixed_all)
@@ -563,7 +466,7 @@ intervals(lm.fit_mixed_all)
     ##    lower     est.    upper 
     ## 1.084851 1.310040 1.581973
 
-## Mixed Effect with diagonal covariance
+### Mixed Effect with diagonal covariance
 
 ``` r
 lm.fit_mixed_diag <- lme( distance~I(age-11), data=Orthodont, 
@@ -587,7 +490,7 @@ lm.fit_mixed_diag
     ## Number of Observations: 108
     ## Number of Groups: 27
 
-## Compare general and diagonal models
+### Compare general and diagonal models
 
 ``` r
 anova( lm.fit_mixed_all, lm.fit_mixed_diag)
@@ -597,7 +500,7 @@ anova( lm.fit_mixed_all, lm.fit_mixed_diag)
     ## lm.fit_mixed_all      1  6 454.6367 470.6173 -221.3183                        
     ## lm.fit_mixed_diag     2  5 454.9848 468.3020 -222.4924 1 vs 2 2.348112  0.1254
 
-## Mixed Effect with only slope as random effect
+### Mixed Effect with only slope as random effect
 
 ``` r
 lm.fit_mixed_slope <- lme( distance~I(age-11), data=Orthodont, 
@@ -620,7 +523,7 @@ lm.fit_mixed_slope
     ## Number of Observations: 108
     ## Number of Groups: 27
 
-## Compare general and mixed-effects-only-slope models
+### Compare general and mixed-effects-only-slope models
 
 ``` r
 anova( lm.fit_mixed_diag, lm.fit_mixed_slope)
@@ -630,7 +533,7 @@ anova( lm.fit_mixed_diag, lm.fit_mixed_slope)
     ## lm.fit_mixed_diag      1  5 454.9848 468.3020 -222.4924                       
     ## lm.fit_mixed_slope     2  4 517.1695 527.8233 -254.5848 1 vs 2 64.1847  <.0001
 
-## Compare the coefficients between the mixed-effect and list models
+### Compare the coefficients between the mixed-effect and list models
 
 ``` r
 df.mixed <- data.frame(coef(lm.fit_mixed_diag)) %>%
